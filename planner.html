@@ -120,8 +120,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 }
 .note{
   position:relative;
-  width:min(100%, 244px);
+  width:var(--nw, min(100%, 244px));
   aspect-ratio:1;
+  container-type:inline-size;
   align-self:center;
   background:var(--c,var(--empty));
   color:var(--note-ink);
@@ -143,7 +144,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 }
 .note-text{
   font-family:var(--hand);
-  --fs:clamp(17px,1.9vw,36px);
+  --fs:clamp(11px, 15cqw, 34px);
   font-size:var(--fs);
   font-weight:700;
   line-height:1.12;
@@ -156,8 +157,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   border-radius:3px;
   transition:background-color .15s ease;
 }
-.note-text.t2{--fs:clamp(15px,1.5vw,28px)}
-.note-text.t3{--fs:clamp(13px,1.2vw,22px)}
+.note-text.t2{--fs:clamp(10px, 11cqw, 25px)}
+.note-text.t3{--fs:clamp(9px, 8.5cqw, 19px)}
 .note-text:hover{background:rgba(255,255,255,.28)}
 .note-text[contenteditable="true"]{
   outline:1px dashed currentColor;outline-offset:3px;
@@ -185,7 +186,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   box-shadow:0 6px 14px rgba(70,55,30,.10);
   color:var(--ink-faint);
 }
-.note.empty .plus{font-size:clamp(20px,2vw,34px);opacity:0;transition:opacity .15s ease}
+.note.empty .plus{font-size:clamp(18px, 17cqw, 40px);opacity:.35;transition:opacity .15s ease}
 .note.empty:hover{transform:rotate(var(--rot,0deg)) translateY(-2px)}
 .note.empty:hover .plus{opacity:.8}
 
@@ -239,7 +240,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .slot{position:relative;display:grid;place-items:center}
 .day{
   width:var(--d);height:var(--d);border-radius:50%;
-  background:var(--day);
+  background-color:var(--day);
   box-shadow:var(--sh-day);
   display:grid;place-items:center;
   transition:background-color .16s ease, transform .16s cubic-bezier(.2,.8,.3,1);
@@ -252,14 +253,14 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   transition:color .16s ease;
   pointer-events:none;
 }
-.slot.out .day{background:var(--day-out);box-shadow:none;cursor:default}
+.slot.out .day{background-color:var(--day-out);box-shadow:none;cursor:default}
 .slot.out .day .num{opacity:.5}
-.slot.past .day{background:var(--day-out);box-shadow:none}
-.slot.past .day.filled{background:color-mix(in oklab, var(--c) 34%, var(--day-out))}
-.slot.past .day.filled .num{color:var(--day-num)}
+.slot.past .day{background-color:var(--day-out);box-shadow:none}
 .slot.past .day .num{opacity:.7}
-.day.filled{background:var(--c)}
-.day.filled .num{color:var(--day-num-on)}
+.slot.past .day.filled .num,.slot.out .day.filled .num{color:var(--day-num);text-shadow:none}
+.day.filled .num{color:var(--day-num-on);text-shadow:0 1px 2px rgba(0,0,0,.22)}
+.painting .slot:not(.out) .day,
+.painting .slot:not(.out) .day .num{cursor:inherit}
 .slot.today .day::before{
   content:"";position:absolute;
   inset:calc(var(--d) * -.10);
@@ -359,9 +360,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     gap:14px;height:auto;padding:6px 12px;
   }
   .note{flex:0 0 auto;width:min(42vw,180px);align-self:auto}
-  .note-text{--fs:clamp(16px,4.2vw,26px)}
-  .note-text.t2{--fs:clamp(14px,3.4vw,21px)}
-  .note-text.t3{--fs:clamp(12px,2.8vw,17px)}
   .board{order:-1;min-height:72dvh}
 }
 @media (prefers-reduced-motion: reduce){
@@ -438,74 +436,54 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   }
 
   /* ================= состояние ================= */
-  function seed(){
-    var y = today.getFullYear(), m = today.getMonth();
-    var shift = (new Date(y,m,1).getDay()+6)%7;
-    var lastDay = new Date(y,m+1,0).getDate();
-    function at(row,col){
-      var n = row*7 + col - shift + 1;
-      if (n < 1 || n > lastDay) return null;
-      return key(new Date(y,m,n));
-    }
-    var p = [
-      {id:"p1", slot:0, text:"проект №1", color:"#B2DE52"},
-      {id:"p2", slot:1, text:"проект №2", color:"#F2A85C"},
-      {id:"p3", slot:2, text:"проект №3", color:"#EF605C"},
-      {id:"p4", slot:3, text:"проект №4", color:"#58DFC6"}
-    ];
-    var days = {};
-    function fill(row,col,pid){ var k = at(row,col); if (k) (days[k]=days[k]||{}).fill = pid; }
-    function pin(row,col,kind){
-      var k = at(row,col); if (!k) return;
-      var d = days[k]=days[k]||{}; d.pins = d.pins||[];
-      if (d.pins.indexOf(kind) < 0) d.pins.push(kind);
-    }
-    fill(0,3,"p1"); fill(0,4,"p1"); fill(0,5,"p3"); fill(0,6,"p3");
-    fill(1,0,"p2"); fill(1,1,"p2"); fill(1,2,"p1"); fill(1,3,"p1"); fill(1,4,"p3"); fill(1,5,"p3");
-    pin(0,3,"uni"); pin(0,4,"sport"); pin(1,4,"uni"); pin(1,4,"sport"); pin(1,2,"uni");
-    var threads = [];
-    var a = at(1,2), b = at(1,0);
-    if (a && b) threads.push({id:"t1", from:a, to:b});
-    return {projects:p, days:days, threads:threads, seeded:true};
-  }
+  function blank(){ return {projects:[], days:{}, threads:[]}; }
 
   function normalize(raw){
-    if (!raw || !Array.isArray(raw.projects)) return seed();
-    var used = {};
-    var projects = raw.projects.filter(function(p){
-      if (!p || typeof p.slot !== "number" || p.slot < 0 || p.slot > 5 || used[p.slot]) return false;
-      used[p.slot] = 1; return true;
-    }).map(function(p){
+    if (!raw || !Array.isArray(raw.projects)) return blank();
+    var incoming = raw.projects.filter(Boolean).slice(0, 40);
+    if (incoming.some(function(p){ return !p.side && typeof p.slot === "number"; })){
+      incoming.sort(function(a,b){ return (a.slot||0) - (b.slot||0); });
+    }
+    var projects = incoming.map(function(p){
+      var side = (p.side === "l" || p.side === "r") ? p.side
+               : (typeof p.slot === "number" && p.slot >= 3) ? "r" : "l";
       return {
-        id:String(p.id||uid()), slot:p.slot,
+        id:String(p.id||uid()), side:side,
         text:String(p.text==null?"":p.text).slice(0,60),
         color:/^#[0-9a-f]{6}$/i.test(p.color)?p.color:PALETTE[0]
       };
     });
+    var known = {};
+    projects.forEach(function(p){ known[p.id] = 1; });
     var days = {};
     var src = raw.days && typeof raw.days === "object" ? raw.days : {};
     Object.keys(src).forEach(function(k){
-      var d = src[k] || {}, pins = [];
+      var d = src[k] || {}, pins = [], fills = [];
       if (Array.isArray(d.pins)){
         d.pins.forEach(function(x){
           if ((x === "uni" || x === "sport") && pins.indexOf(x) < 0) pins.push(x);
         });
       }
+      var raws = Array.isArray(d.fills) ? d.fills : (d.fill ? [d.fill] : []);
+      raws.forEach(function(id){
+        id = String(id);
+        if (known[id] && fills.indexOf(id) < 0 && fills.length < 6) fills.push(id);
+      });
       var out = {};
-      if (d.fill) out.fill = String(d.fill);
+      if (fills.length) out.fills = fills;
       if (pins.length) out.pins = pins;
-      if (out.fill || pins.length) days[k] = out;
+      if (fills.length || pins.length) days[k] = out;
     });
     var threads = (Array.isArray(raw.threads)?raw.threads:[]).filter(function(t){
       return t && t.from && t.to && t.to < t.from;
     }).map(function(t){ return {id:String(t.id||uid()), from:String(t.from), to:String(t.to)}; });
-    return {projects:projects, days:days, threads:threads, seeded:!!raw.seeded};
+    return {projects:projects, days:days, threads:threads};
   }
 
   var docRef = null, saveTimer = null, remote = false;
   function loadLocal(){
     try { var r = localStorage.getItem(LS); if (r) return normalize(JSON.parse(r)); } catch(e){}
-    return seed();
+    return blank();
   }
   function commit(){
     try { localStorage.setItem(LS, JSON.stringify(state)); } catch(e){}
@@ -513,7 +491,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     if (docRef && !remote){
       clearTimeout(saveTimer);
       saveTimer = setTimeout(function(){
-        docRef.set({projects:state.projects, days:state.days, threads:state.threads, seeded:state.seeded, updatedAt:Date.now()}).catch(function(){});
+        docRef.set({projects:state.projects, days:state.days, threads:state.threads, updatedAt:Date.now()}).catch(function(){});
       }, 300);
     }
   }
@@ -542,15 +520,14 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     for (var i=0;i<state.projects.length;i++) if (state.projects[i].id === id) return state.projects[i];
     return null;
   }
-  function projectAt(slot){
-    for (var i=0;i<state.projects.length;i++) if (state.projects[i].slot === slot) return state.projects[i];
-    return null;
+  function projectsOn(side){
+    return state.projects.filter(function(p){ return p.side === side; });
   }
   function dayOf(k){ return state.days[k] || null; }
   function touch(k){ return (state.days[k] = state.days[k] || {}); }
   function tidy(k){
     var d = state.days[k];
-    if (d && !d.fill && (!d.pins || !d.pins.length)) delete state.days[k];
+    if (d && (!d.fills || !d.fills.length) && (!d.pins || !d.pins.length)) delete state.days[k];
   }
 
   /* ================= курсоры и режимы ================= */
@@ -588,11 +565,10 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   }
 
   /* ================= стикеры ================= */
-  function noteEl(slot){
-    var p = projectAt(slot);
+  function noteEl(p, side){
     var el = document.createElement("div");
     el.className = "note" + (p ? "" : " empty") + (p && brush === p.id ? " is-painting" : "");
-    el.style.setProperty("--rot", spin(p ? p.id : "slot-" + slot));
+    el.style.setProperty("--rot", spin(p ? p.id : "add-" + side + "-" + state.projects.length));
 
     if (!p){
       var plus = document.createElement("span");
@@ -604,7 +580,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
       el.title = "Добавить проект";
       var create = function(){
         var free = PALETTE.filter(function(c){ return !state.projects.some(function(x){ return x.color === c; }); });
-        var np = {id:uid(), slot:slot, text:"новый проект", color:free[0] || PALETTE[slot % PALETTE.length]};
+        var np = {id:uid(), side:side, text:"новый проект", color:free[0] || PALETTE[state.projects.length % PALETTE.length]};
         state.projects.push(np);
         commit();
         var fresh = document.querySelector('.note[data-id="'+np.id+'"] .note-text');
@@ -637,7 +613,12 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
       e.stopPropagation();
       state.projects = state.projects.filter(function(q){ return q.id !== p.id; });
       Object.keys(state.days).forEach(function(k){
-        if (state.days[k].fill === p.id){ delete state.days[k].fill; tidy(k); }
+        var f = state.days[k].fills;
+        if (f && f.indexOf(p.id) >= 0){
+          f = f.filter(function(x){ return x !== p.id; });
+          if (f.length) state.days[k].fills = f; else delete state.days[k].fills;
+          tidy(k);
+        }
       });
       commit();
       if (brush === p.id) setBrush(null);
@@ -725,6 +706,22 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     document.documentElement.style.setProperty("--d", Math.max(40, Math.min(112, d)).toFixed(1) + "px");
   }
 
+  function sliceStyle(fills, muted){
+    var n = fills.length, step = 360 / n, gap = n > 1 ? 1.6 : 0, parts = [];
+    for (var i=0;i<n;i++){
+      var a = i*step, b = a + step;
+      var c = muted ? "color-mix(in oklab, " + fills[i].color + " 34%, var(--day-out))" : fills[i].color;
+      if (gap){
+        parts.push("transparent " + a.toFixed(2) + "deg " + (a+gap/2).toFixed(2) + "deg");
+        parts.push(c + " " + (a+gap/2).toFixed(2) + "deg " + (b-gap/2).toFixed(2) + "deg");
+        parts.push("transparent " + (b-gap/2).toFixed(2) + "deg " + b.toFixed(2) + "deg");
+      } else {
+        parts.push(c + " 0deg 360deg");
+      }
+    }
+    return "conic-gradient(from 0deg," + parts.join(",") + ")";
+  }
+
   function pinEl(kind, k){
     var b = document.createElement("button");
     b.className = "pin " + kind;
@@ -771,13 +768,17 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
       var day = document.createElement("button");
       day.className = "day";
       day.dataset.date = k;
-      var pj = rec && rec.fill ? project(rec.fill) : null;
-      if (pj){ day.classList.add("filled"); day.style.setProperty("--c", pj.color); }
+      var fills = ((rec && rec.fills) || []).map(project).filter(Boolean);
+      if (fills.length){
+        day.classList.add("filled");
+        day.style.backgroundImage = sliceStyle(fills, out || k < TODAY_KEY);
+      }
       var num = document.createElement("span");
       num.className = "num";
       num.textContent = d.getDate();
       day.appendChild(num);
-      day.setAttribute("aria-label", d.getDate()+" "+MONTHS[d.getMonth()] + (pj ? ", " + pj.text : ""));
+      day.setAttribute("aria-label", d.getDate()+" "+MONTHS[d.getMonth()] +
+        (fills.length ? ", " + fills.map(function(q){ return q.text; }).join(", ") : ""));
       if (out) day.disabled = true;
       slot.appendChild(day);
 
@@ -808,10 +809,27 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   }
 
   function renderRails(){
-    [["railL",[0,1,2]],["railR",[3,4,5]]].forEach(function(cfg){
+    [["railL","l"],["railR","r"]].forEach(function(cfg){
       var rail = document.getElementById(cfg[0]);
       rail.textContent = "";
-      cfg[1].forEach(function(s){ rail.appendChild(noteEl(s)); });
+      projectsOn(cfg[1]).forEach(function(p){ rail.appendChild(noteEl(p, cfg[1])); });
+      rail.appendChild(noteEl(null, cfg[1]));
+    });
+    fitRails();
+  }
+  function fitRails(){
+    var wide = innerWidth > 900;
+    ["railL","railR"].forEach(function(id){
+      var rail = document.getElementById(id);
+      if (!wide){ rail.style.removeProperty("--nw"); rail.style.removeProperty("gap"); return; }
+      var n = Math.max(1, rail.childElementCount);
+      var cs = getComputedStyle(rail);
+      var h = rail.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      var w = rail.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      var size = Math.min(w, 244, h / (n + 0.16 * (n - 1)));
+      size = Math.max(52, size);
+      rail.style.setProperty("--nw", size.toFixed(1) + "px");
+      rail.style.gap = Math.max(6, Math.min(36, size * 0.16)).toFixed(1) + "px";
     });
   }
   function render(){ renderRails(); renderGrid(); }
@@ -820,9 +838,15 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   function paintDay(k){
     if (!brush) return;
     var rec = touch(k);
-    if (brush === ERASER) delete rec.fill;
-    else if (rec.fill === brush) delete rec.fill;
-    else rec.fill = brush;
+    var fills = (rec.fills || []).slice();
+    if (brush === ERASER) fills = [];
+    else {
+      var i = fills.indexOf(brush);
+      if (i >= 0) fills.splice(i,1);
+      else if (fills.length < 6) fills.push(brush);
+      else { showHint("на одном дне помещается не больше шести активностей"); return; }
+    }
+    if (fills.length) rec.fills = fills; else delete rec.fills;
     tidy(k);
     commit();
   }
@@ -876,7 +900,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     if (!day || day.disabled) return;
     e.preventDefault();
     var rec = dayOf(day.dataset.date);
-    if (rec && rec.fill){ delete rec.fill; tidy(day.dataset.date); commit(); }
+    if (rec && rec.fills){ delete rec.fills; tidy(day.dataset.date); commit(); }
   });
 
   var hotSlot = null;
@@ -912,7 +936,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     e.stopPropagation();
     setBrush(brush === ERASER ? null : ERASER);
   });
-  window.addEventListener("resize", function(){ fit(); resizeCanvas(); });
+  window.addEventListener("resize", function(){ fit(); fitRails(); resizeCanvas(); });
 
   /* ================= нить ================= */
   var cv = document.getElementById("rope"), cx2 = cv.getContext("2d");
@@ -1107,6 +1131,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     }, 400);
   }
   connect();
-  setTimeout(function(){ if (!brush) showHint("нажмите на стикер, чтобы включить красящий режим"); }, 700);
+  setTimeout(function(){
+    if (brush) return;
+    showHint(state.projects.length
+      ? "нажмите на стикер, чтобы включить красящий режим"
+      : "нажмите на пустой стикер, чтобы завести первый проект");
+  }, 700);
 })();
 </script>
