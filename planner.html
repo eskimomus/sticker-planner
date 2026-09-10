@@ -87,7 +87,6 @@ body{
   color:var(--ink);
   font-family:var(--font);
   font-size:15px;
-  overflow:hidden;
   -webkit-font-smoothing:antialiased;
   user-select:none;
 }
@@ -100,20 +99,18 @@ body{
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 :focus-visible{outline:2px solid var(--uni);outline-offset:3px}
 
-#rope{position:fixed;inset:0;width:100%;height:100%;z-index:5;pointer-events:none}
+#rope{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
 
 .stage{
-  position:relative;z-index:1;
-  height:100dvh;
+  position:relative;z-index:2;
   display:grid;
   grid-template-columns:minmax(190px,19vw) minmax(0,1fr) minmax(190px,19vw);
-  align-items:center;
+  grid-template-rows:minmax(100dvh, auto);
 }
 
 /* ---------- стикеры ---------- */
 .rail{
   position:relative;z-index:20;
-  height:100%;
   display:flex;flex-direction:column;justify-content:center;
   gap:clamp(14px,3.2vh,44px);
   padding:clamp(12px,2vh,28px) clamp(10px,1.6vw,30px);
@@ -192,7 +189,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 
 /* ---------- календарь ---------- */
 .board{
-  height:100%;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   min-width:0;
@@ -352,8 +348,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .pop button[aria-pressed="true"]{box-shadow:inset 0 0 0 1px rgba(0,0,0,.14), 0 0 0 2px var(--ink)}
 
 @media (max-width:900px){
-  body{overflow:auto}
-  .stage{grid-template-columns:1fr;height:auto;padding-bottom:30px}
+  .stage{grid-template-columns:1fr;grid-template-rows:auto;padding-bottom:30px}
   .rail{
     flex-direction:row;flex-wrap:wrap;
     justify-content:center;align-items:flex-start;
@@ -700,7 +695,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   }
   function fit(){
     var board = document.getElementById("board");
-    var w = board.clientWidth, h = board.clientHeight;
+    var w = board.clientWidth, h = Math.min(board.clientHeight || innerHeight, innerHeight);
     var rows = weeksIn(view.y, view.m);
     var d = Math.min((w - 10) / (7 * 1.72), (h - 38 - 34 - 26) / (rows * 1.46 + 0.62));
     document.documentElement.style.setProperty("--d", Math.max(40, Math.min(112, d)).toFixed(1) + "px");
@@ -824,7 +819,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
       if (!wide){ rail.style.removeProperty("--nw"); rail.style.removeProperty("gap"); return; }
       var n = Math.max(1, rail.childElementCount);
       var cs = getComputedStyle(rail);
-      var h = rail.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      var h = Math.min(rail.clientHeight, innerHeight) - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
       var w = rail.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
       var size = Math.min(w, 244, h / (n + 0.16 * (n - 1)));
       size = Math.max(52, size);
