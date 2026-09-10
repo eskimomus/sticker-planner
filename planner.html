@@ -11,6 +11,7 @@
   --ink-faint:#B9AE9A;
   --day:#DED8CB;
   --day-out:#F1ECE1;
+  --day-past:#F7F4EC;
   --day-num:rgba(43,38,32,.34);
   --day-num-on:rgba(255,255,255,.85);
   --tie:#C8BFAE;
@@ -39,6 +40,7 @@
     --ink-faint:#6B6153;
     --day:#332D25;
     --day-out:#1E1A15;
+    --day-past:#191611;
     --day-num:rgba(239,233,221,.36);
     --day-num-on:rgba(0,0,0,.6);
     --tie:#544B3E;
@@ -64,6 +66,7 @@
   --ink-faint:#6B6153;
   --day:#332D25;
   --day-out:#1E1A15;
+  --day-past:#191611;
   --day-num:rgba(239,233,221,.36);
   --day-num-on:rgba(0,0,0,.6);
   --tie:#544B3E;
@@ -250,9 +253,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   pointer-events:none;
 }
 .slot.out .day{background-color:var(--day-out);box-shadow:none}
-.slot.out .day .num{opacity:.5}
-.slot.past .day{background-color:var(--day-out);box-shadow:none}
-.slot.past .day .num{opacity:.7}
+.slot.out .day .num{opacity:.6}
+.slot.past .day{background-color:var(--day-past);box-shadow:none}
+.slot.past .day .num{opacity:.38}
 .slot.past .day.filled .num,.slot.out .day.filled .num{color:var(--day-num);text-shadow:none}
 .day.filled .num{color:var(--day-num-on);text-shadow:0 1px 2px rgba(0,0,0,.22)}
 .painting .day,
@@ -701,11 +704,13 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     document.documentElement.style.setProperty("--d", Math.max(40, Math.min(112, d)).toFixed(1) + "px");
   }
 
-  function sliceStyle(fills, muted){
+  function sliceStyle(fills, lvl){
     var n = fills.length, step = 360 / n, gap = n > 1 ? 1.6 : 0, parts = [];
     for (var i=0;i<n;i++){
       var a = i*step, b = a + step;
-      var c = muted ? "color-mix(in oklab, " + fills[i].color + " 34%, var(--day-out))" : fills[i].color;
+      var c = lvl === 2 ? "color-mix(in oklab, " + fills[i].color + " 16%, var(--day-past))"
+            : lvl === 1 ? "color-mix(in oklab, " + fills[i].color + " 34%, var(--day-out))"
+            : fills[i].color;
       if (gap){
         parts.push("transparent " + a.toFixed(2) + "deg " + (a+gap/2).toFixed(2) + "deg");
         parts.push(c + " " + (a+gap/2).toFixed(2) + "deg " + (b-gap/2).toFixed(2) + "deg");
@@ -757,7 +762,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
       var rec = dayOf(k);
 
       var slot = document.createElement("div");
-      slot.className = "slot" + (out ? " out" : "") + (k === TODAY_KEY ? " today" : "") + (!out && k < TODAY_KEY ? " past" : "");
+      slot.className = "slot" + (out ? " out" : "") + (k === TODAY_KEY ? " today" : "") + (k < TODAY_KEY ? " past" : "");
       slot.dataset.date = k;
 
       var day = document.createElement("button");
@@ -766,7 +771,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
       var fills = ((rec && rec.fills) || []).map(project).filter(Boolean);
       if (fills.length){
         day.classList.add("filled");
-        day.style.backgroundImage = sliceStyle(fills, out || k < TODAY_KEY);
+        day.style.backgroundImage = sliceStyle(fills, k < TODAY_KEY ? 2 : out ? 1 : 0);
       }
       var num = document.createElement("span");
       num.className = "num";
