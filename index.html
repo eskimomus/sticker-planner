@@ -1,0 +1,1122 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Стикер-планер</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Nunito:wght@400;600;700&display=swap">
+<style>
+:root{
+  --bg:#FBF7EE;
+  --rule:#EEE4CF;
+  --ink:#2B2620;
+  --ink-soft:#8A7F6E;
+  --ink-faint:#B9AE9A;
+  --day:#DED8CB;
+  --day-out:#F1ECE1;
+  --day-num:rgba(43,38,32,.34);
+  --day-num-on:rgba(255,255,255,.85);
+  --tie:#C8BFAE;
+  --rope:#A99C86;
+  --uni:#4B3FD8;
+  --sport:#C21F1F;
+  --today:#E23B2E;
+  --pop:#FFFDF8;
+  --pop-line:#E6DCC8;
+  --empty:#EFE8DA;
+  --sh-day:0 3px 7px rgba(70,55,30,.13);
+  --sh-note:0 10px 22px rgba(70,55,30,.17), 0 2px 4px rgba(70,55,30,.12);
+  --sh-note-up:0 18px 34px rgba(70,55,30,.24), 0 3px 6px rgba(70,55,30,.14);
+  --sh-pop:0 12px 28px rgba(70,55,30,.2);
+  --note-ink:rgba(38,30,20,.82);
+  --font:"Nunito","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --hand:"Caveat","Segoe Script","Bradley Hand",cursive;
+  --d:96px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15120E;
+    --rule:#221D16;
+    --ink:#EFE9DD;
+    --ink-soft:#9A8F7E;
+    --ink-faint:#6B6153;
+    --day:#332D25;
+    --day-out:#1E1A15;
+    --day-num:rgba(239,233,221,.36);
+    --day-num-on:rgba(0,0,0,.6);
+    --tie:#544B3E;
+    --rope:#6A5F4E;
+    --uni:#8B7DFF;
+    --sport:#FF5F5A;
+    --today:#FF574B;
+    --pop:#221D17;
+    --pop-line:#3A332A;
+    --empty:#211C16;
+    --sh-day:0 3px 8px rgba(0,0,0,.5);
+    --sh-note:0 12px 26px rgba(0,0,0,.6), 0 2px 5px rgba(0,0,0,.45);
+    --sh-note-up:0 20px 38px rgba(0,0,0,.65), 0 3px 7px rgba(0,0,0,.5);
+    --sh-pop:0 14px 30px rgba(0,0,0,.65);
+    --note-ink:rgba(30,22,12,.84);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15120E;
+  --rule:#221D16;
+  --ink:#EFE9DD;
+  --ink-soft:#9A8F7E;
+  --ink-faint:#6B6153;
+  --day:#332D25;
+  --day-out:#1E1A15;
+  --day-num:rgba(239,233,221,.36);
+  --day-num-on:rgba(0,0,0,.6);
+  --tie:#544B3E;
+  --rope:#6A5F4E;
+  --uni:#8B7DFF;
+  --sport:#FF5F5A;
+  --today:#FF574B;
+  --pop:#221D17;
+  --pop-line:#3A332A;
+  --empty:#211C16;
+  --sh-day:0 3px 8px rgba(0,0,0,.5);
+  --sh-note:0 12px 26px rgba(0,0,0,.6), 0 2px 5px rgba(0,0,0,.45);
+  --sh-note-up:0 20px 38px rgba(0,0,0,.65), 0 3px 7px rgba(0,0,0,.5);
+  --sh-pop:0 14px 30px rgba(0,0,0,.65);
+  --note-ink:rgba(30,22,12,.84);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font);
+  font-size:15px;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  user-select:none;
+}
+.paper{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:repeating-linear-gradient(to bottom, transparent 0 33px, var(--rule) 33px 34px);
+  -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
+  mask-image:linear-gradient(to bottom, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
+}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--uni);outline-offset:3px}
+
+#rope{position:fixed;inset:0;width:100%;height:100%;z-index:5;pointer-events:none}
+
+.stage{
+  position:relative;z-index:1;
+  height:100dvh;
+  display:grid;
+  grid-template-columns:minmax(190px,19vw) minmax(0,1fr) minmax(190px,19vw);
+  align-items:center;
+}
+
+/* ---------- стикеры ---------- */
+.rail{
+  position:relative;z-index:20;
+  height:100%;
+  display:flex;flex-direction:column;justify-content:center;
+  gap:clamp(14px,3.2vh,44px);
+  padding:clamp(12px,2vh,28px) clamp(10px,1.6vw,30px);
+}
+.note{
+  position:relative;
+  width:min(100%, 244px);
+  aspect-ratio:1;
+  align-self:center;
+  background:var(--c,var(--empty));
+  color:var(--note-ink);
+  box-shadow:var(--sh-note);
+  transform:rotate(var(--rot,0deg));
+  transition:transform .18s cubic-bezier(.2,.8,.3,1), box-shadow .18s ease;
+  display:flex;align-items:center;justify-content:center;
+  padding:0;
+  min-width:0;min-height:0;
+  overflow:hidden;
+  cursor:pointer;
+}
+.note:hover{transform:rotate(var(--rot,0deg)) translateY(-3px) scale(1.015);box-shadow:var(--sh-note-up)}
+.note.is-painting{
+  transform:rotate(0deg) translateY(-6px) scale(1.04);
+  box-shadow:var(--sh-note-up);
+  outline:2px dashed color-mix(in oklab, var(--c) 55%, var(--ink));
+  outline-offset:5px;
+}
+.note-text{
+  font-family:var(--hand);
+  --fs:clamp(17px,1.9vw,36px);
+  font-size:var(--fs);
+  font-weight:700;
+  line-height:1.12;
+  text-align:center;
+  overflow-wrap:break-word;
+  hyphens:auto;
+  max-width:80%;
+  max-height:82%;
+  padding:2px 6px;
+  border-radius:3px;
+  transition:background-color .15s ease;
+}
+.note-text.t2{--fs:clamp(15px,1.5vw,28px)}
+.note-text.t3{--fs:clamp(13px,1.2vw,22px)}
+.note-text:hover{background:rgba(255,255,255,.28)}
+.note-text[contenteditable="true"]{
+  outline:1px dashed currentColor;outline-offset:3px;
+  cursor:text;user-select:text;background:rgba(255,255,255,.35);
+}
+.note-dot{
+  position:absolute;top:7%;left:7%;
+  width:9%;aspect-ratio:1;border-radius:50%;
+  background:color-mix(in oklab, var(--c) 55%, #000);
+  opacity:.5;
+  transition:opacity .15s ease, transform .15s ease;
+}
+.note-dot:hover{opacity:.9;transform:scale(1.18)}
+.note-x{
+  position:absolute;top:5%;right:5%;
+  width:11%;aspect-ratio:1;
+  display:grid;place-items:center;
+  font-size:clamp(12px,1vw,17px);line-height:1;
+  opacity:0;transition:opacity .15s ease;
+}
+.note:hover .note-x{opacity:.45}
+.note-x:hover{opacity:.9}
+.note.empty{
+  background:var(--empty);
+  box-shadow:0 6px 14px rgba(70,55,30,.10);
+  color:var(--ink-faint);
+}
+.note.empty .plus{font-size:clamp(20px,2vw,34px);opacity:0;transition:opacity .15s ease}
+.note.empty:hover{transform:rotate(var(--rot,0deg)) translateY(-2px)}
+.note.empty:hover .plus{opacity:.8}
+
+/* ---------- календарь ---------- */
+.board{
+  height:100%;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  min-width:0;
+  padding:clamp(8px,1.4vh,20px) 0;
+}
+.monthbar{
+  display:flex;align-items:center;gap:8px;
+  height:38px;flex:none;
+  color:var(--ink-soft);
+}
+.monthbar h1{
+  font-size:clamp(14px,1.05vw,19px);
+  font-weight:600;letter-spacing:.01em;
+  margin:0;min-width:9.5em;text-align:center;color:var(--ink);
+}
+.mbtn{
+  width:26px;height:26px;border-radius:50%;
+  display:grid;place-items:center;
+  color:var(--ink-soft);font-size:17px;line-height:1;
+  transition:background-color .14s ease,color .14s ease;
+}
+.mbtn:hover{background:var(--day-out);color:var(--ink)}
+.mbtn.wide{width:auto;padding:0 11px;height:26px;border-radius:13px;font-size:13px}
+.eraser-ico{width:15px;height:11px;flex:none}
+.dow{
+  display:grid;
+  grid-template-columns:repeat(7, calc(var(--d) * 1.72));
+  justify-content:center;
+  height:calc(var(--d) * .62);
+  align-items:center;
+  flex:none;
+}
+.dow span{
+  text-align:center;
+  font-size:clamp(11px, calc(var(--d) * .29), 30px);
+  color:var(--ink);
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(7, calc(var(--d) * 1.72));
+  grid-auto-rows:calc(var(--d) * 1.46);
+  justify-content:center;
+  flex:none;
+}
+.slot{position:relative;display:grid;place-items:center}
+.day{
+  width:var(--d);height:var(--d);border-radius:50%;
+  background:var(--day);
+  box-shadow:var(--sh-day);
+  display:grid;place-items:center;
+  transition:background-color .16s ease, transform .16s cubic-bezier(.2,.8,.3,1);
+  position:relative;
+}
+.day .num{
+  font-size:calc(var(--d) * .25);
+  font-weight:600;
+  color:var(--day-num);
+  transition:color .16s ease;
+  pointer-events:none;
+}
+.slot.out .day{background:var(--day-out);box-shadow:none;cursor:default}
+.slot.out .day .num{opacity:.5}
+.slot.past .day{background:var(--day-out);box-shadow:none}
+.slot.past .day.filled{background:color-mix(in oklab, var(--c) 34%, var(--day-out))}
+.slot.past .day.filled .num{color:var(--day-num)}
+.slot.past .day .num{opacity:.7}
+.day.filled{background:var(--c)}
+.day.filled .num{color:var(--day-num-on)}
+.slot.today .day::before{
+  content:"";position:absolute;
+  inset:calc(var(--d) * -.10);
+  border-radius:50%;
+  border:calc(var(--d) * .045) solid var(--today);
+  pointer-events:none;
+}
+.painting .slot:not(.out) .day:hover{transform:scale(1.07)}
+.slot.tiehint .day{transform:scale(1.07)}
+.slot.tiehint .day::after{
+  content:"";position:absolute;inset:-7px;border-radius:50%;
+  border:2px dashed var(--uni);opacity:.75;
+}
+
+.strip{
+  position:absolute;left:50%;
+  bottom:calc(50% + var(--d) * .59);
+  transform:translateX(-50%);
+  display:flex;align-items:center;
+  gap:calc(var(--d) * .07);
+  height:calc(var(--d) * .30);
+  z-index:10;
+}
+.pin{
+  width:calc(var(--d) * .195);
+  aspect-ratio:1;border-radius:50%;
+  background:var(--c);
+  flex:none;
+  transition:transform .14s cubic-bezier(.2,.8,.3,1), opacity .14s ease;
+}
+.pin:hover{transform:scale(1.25)}
+.pin.uni{background:var(--uni);cursor:grab}
+.pin.uni:active{cursor:grabbing}
+.pin.sport{background:var(--sport)}
+.pin.tie{background:var(--tie)}
+.pin.add{
+  position:absolute;top:50%;
+  left:calc(100% + var(--d) * .07);
+  transform:translateY(-50%);
+  background:var(--day);opacity:0;
+}
+.pin.add:hover{transform:translateY(-50%) scale(1.25)}
+.strip.bare .pin.add{left:50%;transform:translate(-50%,-50%)}
+.strip.bare .pin.add:hover{transform:translate(-50%,-50%) scale(1.25)}
+.slot.topzone .pin.add,.strip:hover .pin.add{opacity:1}
+
+.legend{
+  display:flex;gap:18px;align-items:center;justify-content:center;
+  height:34px;flex:none;
+  font-size:12.5px;color:var(--ink-faint);
+}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:var(--c)}
+.legend .eraser{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:4px 11px;border-radius:13px;
+  font-size:12.5px;color:var(--ink-faint);
+  transition:background-color .14s ease,color .14s ease;
+}
+.legend .eraser:hover{background:var(--day-out);color:var(--ink-soft)}
+.legend .eraser.on{background:var(--ink);color:var(--bg)}
+.hint{
+  position:fixed;left:50%;bottom:14px;transform:translateX(-50%);
+  font-size:12.5px;color:var(--ink-faint);
+  z-index:30;pointer-events:none;
+  opacity:0;transition:opacity .2s ease;
+}
+.hint.on{opacity:1}
+
+/* ---------- палитра ---------- */
+.pop{
+  position:fixed;z-index:40;
+  background:var(--pop);
+  border:1px solid var(--pop-line);
+  border-radius:14px;
+  box-shadow:var(--sh-pop);
+  padding:9px;
+  display:none;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+.pop.on{display:grid}
+.pop button{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--c);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.10);
+  transition:transform .13s ease;
+}
+.pop button:hover{transform:scale(1.16)}
+.pop button[aria-pressed="true"]{box-shadow:inset 0 0 0 1px rgba(0,0,0,.14), 0 0 0 2px var(--ink)}
+
+@media (max-width:900px){
+  body{overflow:auto}
+  .stage{grid-template-columns:1fr;height:auto;padding-bottom:30px}
+  .rail{
+    flex-direction:row;flex-wrap:wrap;
+    justify-content:center;align-items:flex-start;
+    gap:14px;height:auto;padding:6px 12px;
+  }
+  .note{flex:0 0 auto;width:min(42vw,180px);align-self:auto}
+  .note-text{--fs:clamp(16px,4.2vw,26px)}
+  .note-text.t2{--fs:clamp(14px,3.4vw,21px)}
+  .note-text.t3{--fs:clamp(12px,2.8vw,17px)}
+  .board{order:-1;min-height:72dvh}
+}
+@media (prefers-reduced-motion: reduce){
+  *{transition-duration:.01ms !important}
+}
+</style>
+
+<div class="paper"></div>
+<canvas id="rope"></canvas>
+
+<div class="stage" id="stage">
+  <aside class="rail" id="railL"></aside>
+  <main class="board" id="board">
+    <div class="monthbar">
+      <button class="mbtn" id="prev" aria-label="Предыдущий месяц">‹</button>
+      <h1 id="mtitle"></h1>
+      <button class="mbtn" id="next" aria-label="Следующий месяц">›</button>
+      <button class="mbtn wide" id="todayBtn">сегодня</button>
+    </div>
+    <div class="dow" id="dow"></div>
+    <div class="grid" id="grid"></div>
+    <div class="legend">
+      <span><i style="--c:var(--uni)"></i>универ</span>
+      <span><i style="--c:var(--sport)"></i>спорт</span>
+      <button class="eraser" id="eraser" aria-pressed="false">
+        <svg class="eraser-ico" viewBox="0 0 22 16" aria-hidden="true">
+          <g transform="rotate(-22 11 8)">
+            <rect x="3.2" y="3.4" width="15.6" height="9.2" rx="2.2" fill="currentColor" opacity=".22"/>
+            <rect x="3.2" y="3.4" width="15.6" height="9.2" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M11 3.4v9.2" stroke="currentColor" stroke-width="1.5"/>
+          </g>
+        </svg>ластик</button>
+    </div>
+  </main>
+  <aside class="rail" id="railR"></aside>
+</div>
+
+<div class="pop" id="pop"></div>
+<div class="hint" id="hint"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var PALETTE = ["#B2DE52","#F2A85C","#EF605C","#58DFC6","#A48BF0","#6DB9F0","#F3D24E","#F292BE"];
+  var MONTHS = ["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
+  var DOW = ["пн","вт","ср","чт","пт","сб","вс"];
+  var LS = "sticker-planner-v3";
+  var ERASER = "__eraser";
+  var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var today = new Date();
+  var view = {y:today.getFullYear(), m:today.getMonth()};
+  var brush = null;
+  var state = null;
+  var anchors = {};
+  var ropes = {};
+  var drag = null;
+  var justDragged = 0;
+
+  function key(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  function uid(){ return Math.random().toString(36).slice(2,9); }
+  var TODAY_KEY = key(today);
+
+  function hash(str){
+    var h = 2166136261;
+    for (var i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = (h * 16777619) >>> 0; }
+    return h;
+  }
+  function spin(str){
+    var h = hash(str);
+    var a = ((h % 1000) / 1000) * 9 - 4.5;      // -4.5 .. 4.5
+    return (Math.abs(a) < 1 ? a + (a < 0 ? -1 : 1) : a).toFixed(2) + "deg";
+  }
+
+  /* ================= состояние ================= */
+  function seed(){
+    var y = today.getFullYear(), m = today.getMonth();
+    var shift = (new Date(y,m,1).getDay()+6)%7;
+    var lastDay = new Date(y,m+1,0).getDate();
+    function at(row,col){
+      var n = row*7 + col - shift + 1;
+      if (n < 1 || n > lastDay) return null;
+      return key(new Date(y,m,n));
+    }
+    var p = [
+      {id:"p1", slot:0, text:"проект №1", color:"#B2DE52"},
+      {id:"p2", slot:1, text:"проект №2", color:"#F2A85C"},
+      {id:"p3", slot:2, text:"проект №3", color:"#EF605C"},
+      {id:"p4", slot:3, text:"проект №4", color:"#58DFC6"}
+    ];
+    var days = {};
+    function fill(row,col,pid){ var k = at(row,col); if (k) (days[k]=days[k]||{}).fill = pid; }
+    function pin(row,col,kind){
+      var k = at(row,col); if (!k) return;
+      var d = days[k]=days[k]||{}; d.pins = d.pins||[];
+      if (d.pins.indexOf(kind) < 0) d.pins.push(kind);
+    }
+    fill(0,3,"p1"); fill(0,4,"p1"); fill(0,5,"p3"); fill(0,6,"p3");
+    fill(1,0,"p2"); fill(1,1,"p2"); fill(1,2,"p1"); fill(1,3,"p1"); fill(1,4,"p3"); fill(1,5,"p3");
+    pin(0,3,"uni"); pin(0,4,"sport"); pin(1,4,"uni"); pin(1,4,"sport"); pin(1,2,"uni");
+    var threads = [];
+    var a = at(1,2), b = at(1,0);
+    if (a && b) threads.push({id:"t1", from:a, to:b});
+    return {projects:p, days:days, threads:threads, seeded:true};
+  }
+
+  function normalize(raw){
+    if (!raw || !Array.isArray(raw.projects)) return seed();
+    var used = {};
+    var projects = raw.projects.filter(function(p){
+      if (!p || typeof p.slot !== "number" || p.slot < 0 || p.slot > 5 || used[p.slot]) return false;
+      used[p.slot] = 1; return true;
+    }).map(function(p){
+      return {
+        id:String(p.id||uid()), slot:p.slot,
+        text:String(p.text==null?"":p.text).slice(0,60),
+        color:/^#[0-9a-f]{6}$/i.test(p.color)?p.color:PALETTE[0]
+      };
+    });
+    var days = {};
+    var src = raw.days && typeof raw.days === "object" ? raw.days : {};
+    Object.keys(src).forEach(function(k){
+      var d = src[k] || {}, pins = [];
+      if (Array.isArray(d.pins)){
+        d.pins.forEach(function(x){
+          if ((x === "uni" || x === "sport") && pins.indexOf(x) < 0) pins.push(x);
+        });
+      }
+      var out = {};
+      if (d.fill) out.fill = String(d.fill);
+      if (pins.length) out.pins = pins;
+      if (out.fill || pins.length) days[k] = out;
+    });
+    var threads = (Array.isArray(raw.threads)?raw.threads:[]).filter(function(t){
+      return t && t.from && t.to && t.to < t.from;
+    }).map(function(t){ return {id:String(t.id||uid()), from:String(t.from), to:String(t.to)}; });
+    return {projects:projects, days:days, threads:threads, seeded:!!raw.seeded};
+  }
+
+  var docRef = null, saveTimer = null, remote = false;
+  function loadLocal(){
+    try { var r = localStorage.getItem(LS); if (r) return normalize(JSON.parse(r)); } catch(e){}
+    return seed();
+  }
+  function commit(){
+    try { localStorage.setItem(LS, JSON.stringify(state)); } catch(e){}
+    render();
+    if (docRef && !remote){
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(function(){
+        docRef.set({projects:state.projects, days:state.days, threads:state.threads, seeded:state.seeded, updatedAt:Date.now()}).catch(function(){});
+      }, 300);
+    }
+  }
+  async function connect(){
+    if (!(window.claude && typeof window.claude.use === "function")) return;
+    var db = null;
+    try { db = await window.claude.use("db"); } catch(e){}
+    if (!db) return;
+    docRef = db.doc("planner/board3");
+    try {
+      docRef.onSnapshot(function(snap){
+        if (!snap || !snap.exists) return;
+        if (snap.metadata && snap.metadata.hasPendingWrites) return;
+        var data = snap.data();
+        if (!data || !Array.isArray(data.projects)) return;
+        remote = true;
+        state = normalize(data);
+        try { localStorage.setItem(LS, JSON.stringify(state)); } catch(e){}
+        render();
+        remote = false;
+      }, function(){ docRef = null; });
+    } catch(e){ docRef = null; }
+  }
+
+  function project(id){
+    for (var i=0;i<state.projects.length;i++) if (state.projects[i].id === id) return state.projects[i];
+    return null;
+  }
+  function projectAt(slot){
+    for (var i=0;i<state.projects.length;i++) if (state.projects[i].slot === slot) return state.projects[i];
+    return null;
+  }
+  function dayOf(k){ return state.days[k] || null; }
+  function touch(k){ return (state.days[k] = state.days[k] || {}); }
+  function tidy(k){
+    var d = state.days[k];
+    if (d && !d.fill && (!d.pins || !d.pins.length)) delete state.days[k];
+  }
+
+  /* ================= курсоры и режимы ================= */
+  function cursorFor(color){
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"><circle cx="13" cy="13" r="9" fill="'+color+'" stroke="white" stroke-width="2.5"/></svg>';
+    return "url('data:image/svg+xml;utf8," + encodeURIComponent(svg) + "') 13 13, pointer";
+  }
+  function eraserCursor(){
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28">'+
+      '<g transform="rotate(-22 14 14)">'+
+      '<rect x="5" y="9" width="18" height="11" rx="2.6" fill="#FBF7EE" stroke="#5A5044" stroke-width="1.8"/>'+
+      '<path d="M14 9v11" stroke="#5A5044" stroke-width="1.8"/></g></svg>';
+    return "url('data:image/svg+xml;utf8," + encodeURIComponent(svg) + "') 14 14, pointer";
+  }
+  function setBrush(id){
+    brush = id;
+    var p = (id && id !== ERASER) ? project(id) : null;
+    document.body.style.cursor = id === ERASER ? eraserCursor() : (p ? cursorFor(p.color) : "");
+    document.getElementById("stage").classList.toggle("painting", !!id);
+    var eb = document.getElementById("eraser");
+    eb.classList.toggle("on", id === ERASER);
+    eb.setAttribute("aria-pressed", String(id === ERASER));
+    showHint(id === ERASER ? "ластик · клик по дню стирает цвет, клик по фону — выключить"
+           : p ? "красящий режим: " + p.text + " · клик по фону — выключить" : "");
+    render();
+  }
+  var hintTimer = null;
+  function showHint(text){
+    var h = document.getElementById("hint");
+    clearTimeout(hintTimer);
+    if (!text){ h.classList.remove("on"); return; }
+    h.textContent = text;
+    h.classList.add("on");
+    hintTimer = setTimeout(function(){ if (!brush) h.classList.remove("on"); }, 4000);
+  }
+
+  /* ================= стикеры ================= */
+  function noteEl(slot){
+    var p = projectAt(slot);
+    var el = document.createElement("div");
+    el.className = "note" + (p ? "" : " empty") + (p && brush === p.id ? " is-painting" : "");
+    el.style.setProperty("--rot", spin(p ? p.id : "slot-" + slot));
+
+    if (!p){
+      var plus = document.createElement("span");
+      plus.className = "plus";
+      plus.textContent = "+";
+      el.appendChild(plus);
+      el.setAttribute("role","button");
+      el.tabIndex = 0;
+      el.title = "Добавить проект";
+      var create = function(){
+        var free = PALETTE.filter(function(c){ return !state.projects.some(function(x){ return x.color === c; }); });
+        var np = {id:uid(), slot:slot, text:"новый проект", color:free[0] || PALETTE[slot % PALETTE.length]};
+        state.projects.push(np);
+        commit();
+        var fresh = document.querySelector('.note[data-id="'+np.id+'"] .note-text');
+        if (fresh) startEdit(fresh, np);
+      };
+      el.addEventListener("click", create);
+      el.addEventListener("keydown", function(e){ if (e.key==="Enter"||e.key===" "){ e.preventDefault(); create(); } });
+      return el;
+    }
+
+    el.style.setProperty("--c", p.color);
+    el.dataset.id = p.id;
+    el.setAttribute("role","button");
+    el.tabIndex = 0;
+    el.setAttribute("aria-pressed", String(brush === p.id));
+
+    var dot = document.createElement("button");
+    dot.className = "note-dot";
+    dot.title = "Сменить цвет";
+    dot.setAttribute("aria-label","Сменить цвет проекта");
+    dot.addEventListener("click", function(e){ e.stopPropagation(); openPop(dot, p); });
+    el.appendChild(dot);
+
+    var x = document.createElement("button");
+    x.className = "note-x";
+    x.textContent = "✕";
+    x.title = "Убрать проект";
+    x.setAttribute("aria-label","Убрать проект");
+    x.addEventListener("click", function(e){
+      e.stopPropagation();
+      state.projects = state.projects.filter(function(q){ return q.id !== p.id; });
+      Object.keys(state.days).forEach(function(k){
+        if (state.days[k].fill === p.id){ delete state.days[k].fill; tidy(k); }
+      });
+      commit();
+      if (brush === p.id) setBrush(null);
+    });
+    el.appendChild(x);
+
+    var txt = document.createElement("div");
+    txt.className = "note-text" + (p.text.length > 26 ? " t3" : p.text.length > 14 ? " t2" : "");
+    txt.textContent = p.text;
+    txt.title = "Клик — переименовать";
+    txt.addEventListener("click", function(e){
+      e.stopPropagation();
+      if (txt.getAttribute("contenteditable") !== "true") startEdit(txt, p);
+    });
+    el.appendChild(txt);
+
+    el.addEventListener("click", function(){
+      if (txt.getAttribute("contenteditable") === "true") return;
+      setBrush(brush === p.id ? null : p.id);
+    });
+    el.addEventListener("keydown", function(e){
+      if (e.key==="Enter"||e.key===" "){ e.preventDefault(); setBrush(brush === p.id ? null : p.id); }
+    });
+    return el;
+  }
+
+  function startEdit(txt, p){
+    txt.setAttribute("contenteditable","true");
+    txt.focus();
+    var r = document.createRange(); r.selectNodeContents(txt);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    function done(){
+      txt.removeAttribute("contenteditable");
+      var v = txt.textContent.replace(/\s+/g," ").trim().slice(0,60);
+      if (v && v !== p.text){ p.text = v; commit(); } else { txt.textContent = p.text; }
+    }
+    txt.addEventListener("blur", done, {once:true});
+    txt.addEventListener("keydown", function(e){
+      e.stopPropagation();
+      if (e.key === "Enter"){ e.preventDefault(); txt.blur(); }
+      if (e.key === "Escape"){ txt.textContent = p.text; txt.blur(); }
+    });
+  }
+
+  /* ================= палитра ================= */
+  var popFor = null;
+  function openPop(anchor, p){
+    var pop = document.getElementById("pop");
+    pop.textContent = "";
+    PALETTE.forEach(function(c){
+      var b = document.createElement("button");
+      b.style.setProperty("--c", c);
+      b.setAttribute("aria-label","Цвет " + c);
+      b.setAttribute("aria-pressed", String(c === p.color));
+      b.addEventListener("click", function(e){
+        e.stopPropagation();
+        p.color = c;
+        closePop();
+        commit();
+        if (brush === p.id) document.body.style.cursor = cursorFor(c);
+      });
+      pop.appendChild(b);
+    });
+    pop.classList.add("on");
+    var r = anchor.getBoundingClientRect();
+    var w = pop.offsetWidth, h = pop.offsetHeight;
+    var left = Math.min(Math.max(8, r.left + r.width/2 - w/2), innerWidth - w - 8);
+    var top = r.bottom + 10 + h > innerHeight ? r.top - h - 10 : r.bottom + 10;
+    pop.style.left = left + "px";
+    pop.style.top = Math.max(8, top) + "px";
+    popFor = p.id;
+  }
+  function closePop(){ document.getElementById("pop").classList.remove("on"); popFor = null; }
+
+  /* ================= календарь ================= */
+  function weeksIn(y,m){
+    var shift = (new Date(y,m,1).getDay()+6)%7;
+    return Math.ceil((shift + new Date(y,m+1,0).getDate())/7);
+  }
+  function fit(){
+    var board = document.getElementById("board");
+    var w = board.clientWidth, h = board.clientHeight;
+    var rows = weeksIn(view.y, view.m);
+    var d = Math.min((w - 10) / (7 * 1.72), (h - 38 - 34 - 26) / (rows * 1.46 + 0.62));
+    document.documentElement.style.setProperty("--d", Math.max(40, Math.min(112, d)).toFixed(1) + "px");
+  }
+
+  function pinEl(kind, k){
+    var b = document.createElement("button");
+    b.className = "pin " + kind;
+    b.dataset.date = k;
+    b.dataset.kind = kind;
+    if (kind === "uni"){
+      b.title = "универ · потяните, чтобы протянуть нить";
+      b.setAttribute("aria-label","Метка «универ». Потяните, чтобы протянуть нить к более раннему дню");
+      anchors["from-"+k] = b;
+    } else if (kind === "sport"){
+      b.title = "спорт · клик убирает";
+      b.setAttribute("aria-label","Метка «спорт»");
+    } else if (kind === "add"){
+      b.title = "назначить цвет: универ, затем спорт";
+      b.setAttribute("aria-label","Добавить метку");
+    }
+    return b;
+  }
+
+  function renderGrid(){
+    fit();
+    var y = view.y, m = view.m;
+    document.getElementById("mtitle").textContent = MONTHS[m] + " " + y;
+    var dowEl = document.getElementById("dow");
+    if (!dowEl.childElementCount) DOW.forEach(function(t){ var s=document.createElement("span"); s.textContent=t; dowEl.appendChild(s); });
+
+    var shift = (new Date(y,m,1).getDay()+6)%7;
+    var start = new Date(y,m,1-shift);
+    var rows = weeksIn(y,m);
+    var grid = document.getElementById("grid");
+    grid.textContent = "";
+    anchors = {};
+
+    for (var i=0;i<rows*7;i++){
+      var d = new Date(start.getFullYear(), start.getMonth(), start.getDate()+i);
+      var k = key(d);
+      var out = d.getMonth() !== m;
+      var rec = dayOf(k);
+
+      var slot = document.createElement("div");
+      slot.className = "slot" + (out ? " out" : "") + (k === TODAY_KEY ? " today" : "") + (!out && k < TODAY_KEY ? " past" : "");
+      slot.dataset.date = k;
+
+      var day = document.createElement("button");
+      day.className = "day";
+      day.dataset.date = k;
+      var pj = rec && rec.fill ? project(rec.fill) : null;
+      if (pj){ day.classList.add("filled"); day.style.setProperty("--c", pj.color); }
+      var num = document.createElement("span");
+      num.className = "num";
+      num.textContent = d.getDate();
+      day.appendChild(num);
+      day.setAttribute("aria-label", d.getDate()+" "+MONTHS[d.getMonth()] + (pj ? ", " + pj.text : ""));
+      if (out) day.disabled = true;
+      slot.appendChild(day);
+
+      if (!out){
+        var strip = document.createElement("div");
+        strip.className = "strip";
+        var pins = (rec && rec.pins) || [];
+        var real = 0;
+        ["uni","sport"].forEach(function(kind){
+          if (pins.indexOf(kind) >= 0){ strip.appendChild(pinEl(kind, k)); real++; }
+        });
+        state.threads.forEach(function(t){
+          if (t.to !== k) return;
+          var tb = pinEl("tie", k);
+          tb.dataset.thread = t.id;
+          tb.title = "нить · клик, чтобы отвязать";
+          anchors["tie-"+t.id] = tb;
+          strip.appendChild(tb);
+          real++;
+        });
+        if (pins.length < 2) strip.appendChild(pinEl("add", k));
+        if (!real) strip.classList.add("bare");
+        slot.appendChild(strip);
+      }
+      grid.appendChild(slot);
+    }
+    syncRopes();
+  }
+
+  function renderRails(){
+    [["railL",[0,1,2]],["railR",[3,4,5]]].forEach(function(cfg){
+      var rail = document.getElementById(cfg[0]);
+      rail.textContent = "";
+      cfg[1].forEach(function(s){ rail.appendChild(noteEl(s)); });
+    });
+  }
+  function render(){ renderRails(); renderGrid(); }
+
+  /* ================= действия ================= */
+  function paintDay(k){
+    if (!brush) return;
+    var rec = touch(k);
+    if (brush === ERASER) delete rec.fill;
+    else if (rec.fill === brush) delete rec.fill;
+    else rec.fill = brush;
+    tidy(k);
+    commit();
+  }
+  function cyclePin(k, kind){
+    var rec = touch(k);
+    var pins = rec.pins = (rec.pins || []).slice();
+    function has(x){ return pins.indexOf(x) >= 0; }
+    function drop(x){ var i = pins.indexOf(x); if (i >= 0) pins.splice(i,1); }
+    if (kind === "add"){
+      if (!has("uni")) pins.push("uni");
+      else if (!has("sport")) pins.push("sport");
+    } else if (kind === "uni"){
+      drop("uni");
+      if (!has("sport")) pins.push("sport");
+    } else {
+      drop("sport");
+    }
+    if (!has("uni")) state.threads = state.threads.filter(function(t){ return t.from !== k; });
+    if (!pins.length) delete rec.pins; else rec.pins = pins;
+    tidy(k);
+    commit();
+  }
+
+  document.addEventListener("click", function(e){
+    var pin = e.target.closest ? e.target.closest(".pin") : null;
+    if (pin){
+      if (Date.now() - justDragged < 350) return;
+      if (pin.classList.contains("tie")){
+        var id = pin.dataset.thread;
+        dropRope(id);
+        state.threads = state.threads.filter(function(t){ return t.id !== id; });
+        commit();
+        return;
+      }
+      cyclePin(pin.dataset.date, pin.dataset.kind);
+      return;
+    }
+    var day = e.target.closest ? e.target.closest(".day") : null;
+    if (day && !day.disabled){
+      if (brush) paintDay(day.dataset.date);
+      else showHint("нажмите на стикер, чтобы включить красящий режим");
+      return;
+    }
+    if (e.target.closest && (e.target.closest(".note") || e.target.closest(".pop") || e.target.closest(".monthbar") || e.target.closest(".legend"))) return;
+    if (popFor) closePop();
+    if (brush) setBrush(null);
+  });
+
+  document.addEventListener("contextmenu", function(e){
+    var day = e.target.closest ? e.target.closest(".day") : null;
+    if (!day || day.disabled) return;
+    e.preventDefault();
+    var rec = dayOf(day.dataset.date);
+    if (rec && rec.fill){ delete rec.fill; tidy(day.dataset.date); commit(); }
+  });
+
+  var hotSlot = null;
+  document.addEventListener("mousemove", function(e){
+    var slot = e.target.closest ? e.target.closest(".slot") : null;
+    if (hotSlot && hotSlot !== slot){ hotSlot.classList.remove("topzone"); hotSlot = null; }
+    if (!slot || slot.classList.contains("out")) return;
+    var box = slot.querySelector(".day").getBoundingClientRect();
+    var top = e.clientY < box.top + box.height * 0.45;
+    slot.classList.toggle("topzone", top);
+    hotSlot = top ? slot : null;
+  });
+
+  document.addEventListener("keydown", function(e){
+    if (e.target && e.target.isContentEditable) return;
+    if (e.key === "Escape"){ if (popFor) closePop(); if (brush) setBrush(null); }
+    if (e.key === "ArrowLeft") step(-1);
+    if (e.key === "ArrowRight") step(1);
+  });
+
+  function step(n){
+    view.m += n;
+    if (view.m < 0){ view.m = 11; view.y--; }
+    if (view.m > 11){ view.m = 0; view.y++; }
+    render();
+  }
+  document.getElementById("prev").addEventListener("click", function(){ step(-1); });
+  document.getElementById("next").addEventListener("click", function(){ step(1); });
+  document.getElementById("todayBtn").addEventListener("click", function(){
+    view.y = today.getFullYear(); view.m = today.getMonth(); render();
+  });
+  document.getElementById("eraser").addEventListener("click", function(e){
+    e.stopPropagation();
+    setBrush(brush === ERASER ? null : ERASER);
+  });
+  window.addEventListener("resize", function(){ fit(); resizeCanvas(); });
+
+  /* ================= нить ================= */
+  var cv = document.getElementById("rope"), cx2 = cv.getContext("2d");
+  function resizeCanvas(){
+    var r = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.floor(innerWidth * r);
+    cv.height = Math.floor(innerHeight * r);
+    cx2.setTransform(r,0,0,r,0,0);
+  }
+  resizeCanvas();
+
+  var SEG = 16, GRAV = 0.30, DAMP = 0.90, ITER = 16, SLACK = 1.035;
+
+  function center(el){
+    var r = el.getBoundingClientRect();
+    return {x:r.left + r.width/2, y:r.top + r.height/2};
+  }
+  function newRope(a, b){
+    var pts = [];
+    for (var i=0;i<=SEG;i++){
+      var t = i/SEG;
+      var x = a.x + (b.x-a.x)*t, yy = a.y + (b.y-a.y)*t;
+      pts.push({x:x, y:yy, px:x, py:yy});
+    }
+    var dist = Math.hypot(b.x-a.x, b.y-a.y);
+    return {pts:pts, rest:Math.max(3, dist/SEG*SLACK), fall:false, life:1};
+  }
+  function stepRope(r, A, B){
+    var p = r.pts, i, n = SEG;
+    if (A){ p[0].x=A.x; p[0].y=A.y; p[0].px=A.x; p[0].py=A.y; }
+    if (B){ p[n].x=B.x; p[n].y=B.y; p[n].px=B.x; p[n].py=B.y; }
+    for (i=0;i<=n;i++){
+      if ((i===0 && A) || (i===n && B)) continue;
+      var q = p[i];
+      var vx = (q.x - q.px) * DAMP, vy = (q.y - q.py) * DAMP;
+      q.px = q.x; q.py = q.y;
+      q.x += vx; q.y += vy + GRAV;
+    }
+    for (var it=0; it<ITER; it++){
+      for (i=0;i<n;i++){
+        var a = p[i], b = p[i+1];
+        var dx = b.x-a.x, dy = b.y-a.y;
+        var d = Math.hypot(dx,dy) || 0.001;
+        var diff = (d - r.rest) / d * 0.5;
+        var ox = dx*diff, oy = dy*diff;
+        var aFixed = (i===0 && A), bFixed = (i+1===n && B);
+        if (!aFixed){ a.x += ox * (bFixed?2:1); a.y += oy * (bFixed?2:1); }
+        if (!bFixed){ b.x -= ox * (aFixed?2:1); b.y -= oy * (aFixed?2:1); }
+      }
+    }
+  }
+  var ropeColor = "#A99C86";
+  function readRopeColor(){
+    ropeColor = getComputedStyle(document.documentElement).getPropertyValue("--rope").trim() || "#A99C86";
+  }
+  function drawRope(r, alpha){
+    var p = r.pts;
+    cx2.save();
+    cx2.globalAlpha = alpha;
+    cx2.strokeStyle = ropeColor;
+    cx2.lineWidth = 2.4;
+    cx2.lineCap = "round";
+    cx2.lineJoin = "round";
+    cx2.beginPath();
+    cx2.moveTo(p[0].x, p[0].y);
+    for (var i=1;i<p.length-1;i++){
+      cx2.quadraticCurveTo(p[i].x, p[i].y, (p[i].x+p[i+1].x)/2, (p[i].y+p[i+1].y)/2);
+    }
+    cx2.lineTo(p[p.length-1].x, p[p.length-1].y);
+    cx2.stroke();
+    cx2.restore();
+  }
+
+  function syncRopes(){
+    var alive = {};
+    state.threads.forEach(function(t){
+      alive[t.id] = 1;
+      var A = anchors["from-"+t.from], B = anchors["tie-"+t.id];
+      if (!A || !B){ delete ropes[t.id]; return; }
+      if (!ropes[t.id]) ropes[t.id] = newRope(center(A), center(B));
+    });
+    Object.keys(ropes).forEach(function(id){
+      if (!alive[id] && !ropes[id].fall) delete ropes[id];
+    });
+  }
+  function dropRope(id){
+    var r = ropes[id];
+    if (!r) return;
+    r.fall = true;
+    ropes["fall-"+uid()] = r;
+    delete ropes[id];
+  }
+
+  var colorTick = 0;
+  function frame(){
+    if ((colorTick++ % 60) === 0) readRopeColor();
+    cx2.clearRect(0,0,innerWidth,innerHeight);
+    Object.keys(ropes).forEach(function(id){
+      var r = ropes[id];
+      if (r.fall){
+        stepRope(r, null, null);
+        r.life -= 0.02;
+        if (r.life <= 0){ delete ropes[id]; return; }
+        drawRope(r, Math.max(0, r.life));
+        return;
+      }
+      var t = null;
+      for (var i=0;i<state.threads.length;i++) if (state.threads[i].id === id) t = state.threads[i];
+      if (!t){ delete ropes[id]; return; }
+      var A = anchors["from-"+t.from], B = anchors["tie-"+t.id];
+      if (!A || !B){ delete ropes[id]; return; }
+      var ca = center(A), cb = center(B);
+      var need = Math.hypot(cb.x-ca.x, cb.y-ca.y)/SEG*SLACK;
+      if (need > r.rest) r.rest = need; else r.rest += (need - r.rest) * 0.06;
+      stepRope(r, ca, cb);
+      drawRope(r, 1);
+    });
+    if (drag && drag.rope){
+      var a = anchors["from-"+drag.from];
+      if (a){
+        var ca2 = center(a);
+        var d = Math.hypot(drag.x - ca2.x, drag.y - ca2.y);
+        drag.rope.rest = Math.max(drag.rope.rest, d/SEG*1.004);
+        stepRope(drag.rope, ca2, {x:drag.x, y:drag.y});
+        drawRope(drag.rope, 1);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  document.addEventListener("pointerdown", function(e){
+    var pin = e.target.closest ? e.target.closest(".pin.uni") : null;
+    if (!pin) return;
+    e.preventDefault();
+    drag = {from:pin.dataset.date, x:e.clientX, y:e.clientY, sx:e.clientX, sy:e.clientY, moved:false, rope:null, target:null};
+    document.body.style.cursor = "grabbing";
+  });
+  document.addEventListener("pointermove", function(e){
+    if (!drag) return;
+    drag.x = e.clientX; drag.y = e.clientY;
+    if (!drag.moved && Math.hypot(e.clientX-drag.sx, e.clientY-drag.sy) > 5){
+      drag.moved = true;
+      var a = anchors["from-"+drag.from];
+      if (a) drag.rope = newRope(center(a), {x:e.clientX, y:e.clientY});
+    }
+    if (!drag.moved) return;
+    var el = document.elementFromPoint(e.clientX, e.clientY);
+    var slot = el && el.closest ? el.closest(".slot") : null;
+    var okKey = slot && !slot.classList.contains("out") && slot.dataset.date < drag.from ? slot.dataset.date : null;
+    document.querySelectorAll(".slot.tiehint").forEach(function(s){ if (s.dataset.date !== okKey) s.classList.remove("tiehint"); });
+    if (okKey && slot) slot.classList.add("tiehint");
+    drag.target = okKey;
+  });
+  document.addEventListener("pointerup", function(){
+    if (!drag) return;
+    if (drag.moved) justDragged = Date.now();
+    var bp = (brush && brush !== ERASER) ? project(brush) : null;
+    document.body.style.cursor = brush === ERASER ? eraserCursor() : (bp ? cursorFor(bp.color) : "");
+    document.querySelectorAll(".slot.tiehint").forEach(function(s){ s.classList.remove("tiehint"); });
+    if (drag.moved){
+      var dup = state.threads.some(function(t){ return t.from === drag.from && t.to === drag.target; });
+      if (drag.target && !dup){
+        var t = {id:uid(), from:drag.from, to:drag.target};
+        state.threads.push(t);
+        ropes[t.id] = drag.rope;
+        drag = null;
+        commit();
+        return;
+      }
+      if (drag.rope){ drag.rope.fall = true; ropes["fall-"+uid()] = drag.rope; }
+    }
+    drag = null;
+  });
+  document.addEventListener("pointercancel", function(){ drag = null; });
+
+  /* ================= старт ================= */
+  state = loadLocal();
+  render();
+  if (!REDUCED) frame();
+  else {
+    setInterval(function(){
+      readRopeColor();
+      cx2.clearRect(0,0,innerWidth,innerHeight);
+      Object.keys(ropes).forEach(function(id){
+        for (var i=0;i<state.threads.length;i++){
+          if (state.threads[i].id !== id) continue;
+          var A = anchors["from-"+state.threads[i].from], B = anchors["tie-"+id];
+          if (A && B){ for (var s2=0;s2<25;s2++) stepRope(ropes[id], center(A), center(B)); }
+        }
+        drawRope(ropes[id],1);
+      });
+    }, 400);
+  }
+  connect();
+  setTimeout(function(){ if (!brush) showHint("нажмите на стикер, чтобы включить красящий режим"); }, 700);
+})();
+</script>
+
+</head>
+<body></body>
+</html>
