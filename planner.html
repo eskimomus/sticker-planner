@@ -777,7 +777,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
       if (out) day.disabled = true;
       slot.appendChild(day);
 
-      if (!out){
+      {
         var strip = document.createElement("div");
         strip.className = "strip";
         var pins = (rec && rec.pins) || [];
@@ -902,7 +902,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   document.addEventListener("mousemove", function(e){
     var slot = e.target.closest ? e.target.closest(".slot") : null;
     if (hotSlot && hotSlot !== slot){ hotSlot.classList.remove("topzone"); hotSlot = null; }
-    if (!slot || slot.classList.contains("out")) return;
+    if (!slot) return;
     var box = slot.querySelector(".day").getBoundingClientRect();
     var top = e.clientY < box.top + box.height * 0.45;
     slot.classList.toggle("topzone", top);
@@ -1080,7 +1080,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     if (!drag.moved) return;
     var el = document.elementFromPoint(e.clientX, e.clientY);
     var slot = el && el.closest ? el.closest(".slot") : null;
-    var okKey = slot && !slot.classList.contains("out") && slot.dataset.date < drag.from ? slot.dataset.date : null;
+    var okKey = slot && slot.dataset.date < drag.from ? slot.dataset.date : null;
     document.querySelectorAll(".slot.tiehint").forEach(function(s){ if (s.dataset.date !== okKey) s.classList.remove("tiehint"); });
     if (okKey && slot) slot.classList.add("tiehint");
     drag.target = okKey;
